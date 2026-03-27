@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js" // Ubah jadi js agar kompatibel dengan Next.js
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url dan directUrl dihapus dari sini!
+}
+
+// --- TABEL UNTUK SISTEM RESERVASI ---
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  phone        String?
+  reservations Reservation[] // Relasi: 1 User bisa punya banyak reservasi
+  createdAt    DateTime      @default(now())
+}
+
+model Table {
+  id           Int           @id @default(autoincrement())
+  number       Int           @unique // Nomor meja (misal: Meja 1, Meja 2)
+  capacity     Int           // Kapasitas kursi (misal: 2 orang, 4 orang)
+  isAvailable  Boolean       @default(true)
+  reservations Reservation[] // Relasi: 1 Meja bisa dipesan berkali-kali di waktu berbeda
+}
+
+model Reservation {
+  id        String   @id @default(uuid())
+  userId    String
+  tableId   Int
+  date      DateTime // Tanggal dan jam reservasi
+  guests    Int      // Jumlah tamu yang datang
+  status    String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+
+  // Sambungkan ke tabel User dan Table
+  user      User     @relation(fields: [userId], references: [id])
+  table     Table    @relation(fields: [tableId], references: [id])
+  createdAt DateTime @default(now())
+}
